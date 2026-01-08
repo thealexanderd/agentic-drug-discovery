@@ -44,11 +44,7 @@ Required API keys:
 
 ```bash
 # Basic usage
-python main.py --disease "Alzheimer's disease"
-
-# With custom parameters
-python main.py --disease "Type 2 diabetes" --max-targets 10 --min-score 0.7
-```
+python main.py discover "Alzheimer's disease"
 
 ## Project Structure
 
@@ -76,17 +72,6 @@ The system uses LangGraph to create a stateful agent that:
 
 ## Development
 
-```bash
-# Run tests
-pytest tests/
-
-# Run with verbose logging
-python main.py --disease "Parkinson's disease" --verbose
-
-# Format code
-black src/ tests/
-ruff check src/ tests/
-```
 
 ## License
 
