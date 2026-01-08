@@ -2,6 +2,8 @@
 
 An intelligent agent-based system using LangGraph to discover and rank protein targets for diseases by searching across multiple biochemical and medical databases.
 
+> **🚀 Recent Improvements**: Enhanced PubMed integration with MeSH term lookup, full abstract extraction, automatic protein identification, and multi-factor relevance scoring. Now supports simplified disease names like "Lupus" or "Diabetes"! See [PUBMED_IMPROVEMENTS.md](PUBMED_IMPROVEMENTS.md) for details.
+
 ## Overview
 
 This application uses LangGraph to orchestrate a multi-agent workflow that:
@@ -15,6 +17,9 @@ This application uses LangGraph to orchestrate a multi-agent workflow that:
 - **Multi-Database Search**: Queries PubMed, PubChem, GWAS Catalog, PDB, and UniProt
 - **Intelligent Agent**: Uses LangGraph for decision-making and workflow orchestration
 - **Evidence-Based Ranking**: Scores protein targets based on genetic, structural, and literature evidence
+- **Smart Disease Matching**: Automatically expands disease names (e.g., "Lupus" → "Systemic Lupus Erythematosus") with MeSH term lookup
+- **Rich PubMed Integration**: Extracts full abstracts, publication types, proteins mentioned, and more
+- **Two-Stage Search**: Initial broad search followed by targeted protein-specific queries
 - **Extensible Architecture**: Easy to add new data sources and ranking criteria
 
 ## Installation
@@ -43,8 +48,36 @@ Required API keys:
 ## Usage
 
 ```bash
-# Basic usage
+# Basic usage - now works with simple disease names!
+python main.py discover "Lupus"
 python main.py discover "Alzheimer's disease"
+python main.py discover "Type 2 Diabetes"
+
+# With options
+python main.py discover "Lupus" --max-targets 20 --verbose --output results.csv
+
+# Show configuration
+python main.py config
+```
+
+### Example Output
+
+The system now provides rich results including:
+- Ranked protein targets with multi-factor scores
+- Full PubMed abstracts and publication metadata
+- Extracted protein mentions from literature
+- Direct links to source databases
+- Key findings with publication details
+
+## Testing
+
+```bash
+# Run all tests
+pytest tests/
+
+# Test PubMed improvements specifically
+python test_improvements.py
+```
 
 ## Project Structure
 

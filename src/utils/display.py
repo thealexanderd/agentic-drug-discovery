@@ -66,8 +66,13 @@ def display_results(targets: list[ProteinTarget], max_display: int = 10):
         
         if top_target.key_findings:
             console.print("\n  [bold]Key Findings:[/bold]")
-            for finding in top_target.key_findings[:3]:
+            for finding in top_target.key_findings[:5]:  # Show top 5
                 console.print(f"    • {finding}")
+        
+        if top_target.related_pathways:
+            console.print("\n  [bold]Related Pathways:[/bold]")
+            for pathway in top_target.related_pathways[:3]:
+                console.print(f"    • {pathway}")
     
     console.print("\n")
 

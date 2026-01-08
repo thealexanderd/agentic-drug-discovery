@@ -78,6 +78,13 @@ PATHWAYS: <pathway1>, <pathway2>, ..."""
             state.pubmed_results = pubmed.search(disease)
             state.searches_completed.append("pubmed")
             state.messages.append(f"Found {len(state.pubmed_results)} PubMed articles")
+            
+            # Extract protein candidates from PubMed results
+            for result in state.pubmed_results:
+                proteins = result.metadata.get("proteins_mentioned", [])
+                for protein in proteins:
+                    if protein not in state.candidate_proteins:
+                        state.candidate_proteins.append(protein)
         
         # Search GWAS
         if "gwas" not in state.searches_completed:
@@ -114,6 +121,18 @@ PATHWAYS: <pathway1>, <pathway2>, ..."""
             state.pubchem_results = pubchem.search(state.candidate_proteins[:20])
             state.searches_completed.append("pubchem")
             state.messages.append(f"Found {len(state.pubchem_results)} PubChem compounds")
+        
+        # Do a second targeted PubMed search with top candidate proteins
+        if "pubmed_targeted" not in state.searches_completed and state.candidate_proteins:
+            top_proteins = state.candidate_proteins[:10]  # Top 10 candidates
+            for protein in top_proteins:
+                try:
+                    targeted_results = pubmed.search(disease, protein)
+                    state.pubmed_results.extend(targeted_results)
+                except Exception as e:
+                    print(f"Error in targeted PubMed search for {protein}: {e}")
+            state.searches_completed.append("pubmed_targeted")
+            state.messages.append(f"Completed targeted PubMed search for {len(top_proteins)} proteins")
         
         state.next_action = "rank_targets"
         return state

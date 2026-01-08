@@ -56,12 +56,32 @@ class TargetRanker:
         
         # Process PubMed results for literature evidence
         for result in state.pubmed_results:
-            # Extract protein mentions from title/abstract (simplified)
-            # In production, use NER or the candidate_proteins list
-            for protein in state.candidate_proteins:
-                if protein.upper() in result.title.upper():
-                    evidence[protein.upper()]["literature"].append(result.relevance_score)
-                    evidence[protein.upper()]["sources"].add("PubMed")
+            # Use extracted proteins from metadata
+            proteins_mentioned = result.metadata.get("proteins_mentioned", [])
+            
+            # Also check against candidate proteins
+            all_proteins = set(proteins_mentioned + state.candidate_proteins)
+            
+            for protein in all_proteins:
+                protein_upper = protein.upper()
+                # Check if protein is mentioned in title or abstract
+                title_abstract = f"{result.title} {result.metadata.get('abstract', '')}".upper()
+                if protein_upper in title_abstract:
+                    evidence[protein_upper]["literature"].append(result.relevance_score)
+                    evidence[protein_upper]["sources"].add("PubMed")
+                    
+                    # Add key finding with publication info
+                    year = result.metadata.get("year", "")
+                    pmid = result.metadata.get("pmid", "")
+                    pub_types = result.metadata.get("publication_types", [])
+                    
+                    finding_text = f"Referenced in: {result.title[:80]}..."
+                    if year:
+                        finding_text += f" ({year})"
+                    if pub_types:
+                        finding_text += f" [{pub_types[0] if pub_types else 'Article'}]"
+                    
+                    evidence[protein_upper]["findings"].append(finding_text)
         
         # Process UniProt results
         for result in state.uniprot_results:
