@@ -1,0 +1,30 @@
+# Core dependencies
+langgraph>=0.2.0
+langchain>=0.3.0
+langchain-openai>=0.2.0
+langchain-anthropic>=0.2.0
+
+# API clients
+biopython>=1.84  # For PubMed/Entrez
+requests>=2.31.0
+httpx>=0.27.0
+
+# Data processing
+pandas>=2.2.0
+pydantic>=2.9.0
+pydantic-settings>=2.5.0
+
+# Utilities
+python-dotenv>=1.0.0
+tenacity>=9.0.0  # For retry logic
+tqdm>=4.66.0
+
+# CLI
+typer>=0.12.0
+rich>=13.7.0  # For beautiful CLI output
+
+# Development
+pytest>=8.3.0
+pytest-asyncio>=0.24.0
+black>=24.0.0
+ruff>=0.6.0
