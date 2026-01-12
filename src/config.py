@@ -22,10 +22,17 @@ class Settings(BaseSettings):
     ncbi_api_key: str | None = None
     ncbi_email: str = "user@example.com"
     
+    # DisGeNET (optional - free tier has limited access)
+    disgenet_api_key: str | None = None
+    
     # Search parameters
     max_pubmed_results: int = 50
     max_gwas_results: int = 100
     enable_cache: bool = True
+    
+    # Agentic workflow settings
+    max_iterations: int = 5  # Maximum reasoning iterations
+    verbose_reasoning: bool = False  # Show detailed LLM reasoning
     
     # Rate limiting
     requests_per_second: float = 3.0

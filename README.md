@@ -1,111 +1,258 @@
 # Agentic Protein Target Discovery
 
-An intelligent agent-based system using LangGraph to discover and rank protein targets for diseases by searching across multiple biochemical and medical databases.
+A **truly agentic** AI system using LangGraph that intelligently discovers and ranks protein targets for diseases. Unlike simple automation, this system features an LLM that **reasons about disease characteristics, dynamically selects databases, evaluates intermediate results, and adjusts its search strategy** in real-time.
 
-> **🚀 Recent Improvements**: Enhanced PubMed integration with MeSH term lookup, full abstract extraction, automatic protein identification, and multi-factor relevance scoring. Now supports simplified disease names like "Lupus" or "Diabetes"! See [PUBMED_IMPROVEMENTS.md](PUBMED_IMPROVEMENTS.md) for details.
+## 🧠 What Makes It Agentic?
 
-## Overview
+This isn't just a pipeline—it's an AI researcher that:
 
-This application uses LangGraph to orchestrate a multi-agent workflow that:
-1. Searches biochemical/medical resources (PubMed, PubChem, GWAS Catalog, PDB, UniProt)
-2. Analyzes relationships between diseases and proteins
-3. Ranks potential protein targets based on evidence strength
-4. Provides actionable insights for drug discovery
+1. **Creates Research Plans**: Analyzes the disease type (genetic, autoimmune, metabolic, etc.) and creates a tailored research strategy
+2. **Makes Dynamic Decisions**: The LLM decides which database to query next based on what it has learned
+3. **Evaluates Results**: After each search, the LLM analyzes findings and identifies gaps
+4. **Adjusts Strategy**: Changes its approach based on intermediate results
+5. **Synthesizes Evidence**: Provides reasoned explanations for why targets are promising
 
-## Features
+## 🔬 Databases & Resources
 
-- **Multi-Database Search**: Queries PubMed, PubChem, GWAS Catalog, PDB, and UniProt
-- **Intelligent Agent**: Uses LangGraph for decision-making and workflow orchestration
-- **Evidence-Based Ranking**: Scores protein targets based on genetic, structural, and literature evidence
-- **Smart Disease Matching**: Automatically expands disease names (e.g., "Lupus" → "Systemic Lupus Erythematosus") with MeSH term lookup
-- **Rich PubMed Integration**: Extracts full abstracts, publication types, proteins mentioned, and more
-- **Two-Stage Search**: Initial broad search followed by targeted protein-specific queries
-- **Extensible Architecture**: Easy to add new data sources and ranking criteria
+### Core (Mandatory)
 
-## Installation
+| Database | Purpose | Why It's Essential |
+|----------|---------|-------------------|
+| **PubMed** | Mechanistic & experimental evidence | Functional evidence, PMIDs for justification |
+| **UniProt** | Protein identity & function | Canonical definitions, cross-references |
+| **DisGeNET** | Gene-disease associations | Curated scores, evidence counts |
+| **Gene Ontology** | Biological function validation | Verify mechanism relevance |
+
+### Strongly Recommended
+
+| Database | Purpose | Why It's Valuable |
+|----------|---------|------------------|
+| **GWAS Catalog** | Genetic associations | Causal evidence, avoids literature bias |
+| **Reactome** | Pathway context | Mechanistic explanations, target clustering |
+
+### Supplementary
+
+| Database | Purpose |
+|----------|---------|
+| **PDB** | 3D structure availability for druggability |
+| **PubChem** | Existing compounds, druggability validation |
+
+## 🚀 Quick Start
 
 ```bash
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
+# Setup
+python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
-```
+cp .env.example .env  # Add your API keys
 
-## Configuration
+# Run agentic discovery
+python main.py discover "Alzheimer's disease" --verbose --show-plan
 
-Copy `.env.example` to `.env` and add your API keys:
+# See available tools
+python main.py tools
 
-```bash
-cp .env.example .env
-```
-
-Required API keys:
-- `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` - For LLM reasoning
-- `NCBI_API_KEY` (optional but recommended) - For PubMed rate limits
-
-## Usage
-
-```bash
-# Basic usage - now works with simple disease names!
-python main.py discover "Lupus"
-python main.py discover "Alzheimer's disease"
-python main.py discover "Type 2 Diabetes"
-
-# With options
-python main.py discover "Lupus" --max-targets 20 --verbose --output results.csv
-
-# Show configuration
+# Check configuration
 python main.py config
 ```
 
-### Example Output
-
-The system now provides rich results including:
-- Ranked protein targets with multi-factor scores
-- Full PubMed abstracts and publication metadata
-- Extracted protein mentions from literature
-- Direct links to source databases
-- Key findings with publication details
-
-## Testing
+## 📖 Usage Examples
 
 ```bash
-# Run all tests
-pytest tests/
+# Basic discovery
+python main.py discover "Type 2 Diabetes"
 
-# Test PubMed improvements specifically
-python test_improvements.py
+# Verbose mode shows agent reasoning
+python main.py discover "Systemic Lupus Erythematosus" --verbose
+
+# Show research plan
+python main.py discover "Parkinson's disease" --show-plan
+
+# Export results
+python main.py discover "Breast Cancer" --max-targets 20 --output results.csv
 ```
 
-## Project Structure
+### Example Output (Verbose Mode)
+
+```
+🔬 Agentic Protein Target Discovery
+Disease: Systemic Lupus Erythematosus
+
+🎯 Research Plan
+  Disease    Systemic Lupus Erythematosus
+  Type       autoimmune
+  Strategy   Focus on immune system genes, interferon signaling...
+  Hypotheses • Type I interferon pathway dysregulation
+             • B cell hyperactivity
+             • Complement system abnormalities
+
+🔍 Database Search Results
+  ■ DISGENET
+     Found 45 gene-disease associations with strong evidence...
+     Proteins: STAT4, IRF5, TNFSF4, PTPN22, ITGAM
+  
+  ■ GWAS
+     Strong genetic associations for immune-related genes...
+     Proteins: BLK, BANK1, TNFAIP3
+  
+  ■ PUBMED
+     Literature confirms therapeutic relevance...
+  
+🎯 Top Protein Targets
+
+#1. STAT4 - Signal transducer and activator of transcription 4
+    Score: [████████████████░░░░] 0.82
+    Sources: DisGeNET, GWAS, PubMed, Gene Ontology
+    Evidence strength: strong
+    
+#2. IRF5 - Interferon regulatory factor 5
+    Score: [███████████████░░░░░] 0.78
+    ...
+```
+
+## 🏗️ Architecture
+
+### Agentic Workflow
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    AGENTIC TARGET DISCOVERY                      │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ┌─────────────┐    ┌──────────────┐    ┌──────────────────┐   │
+│  │   PLAN      │───▶│   EXECUTE    │───▶│    ANALYZE       │   │
+│  │             │    │   SEARCH     │    │                  │   │
+│  │ LLM creates │    │              │    │ LLM evaluates    │   │
+│  │ research    │    │ Query        │    │ results, finds   │   │
+│  │ strategy    │    │ selected     │    │ gaps, decides    │   │
+│  └─────────────┘    │ database     │    │ next steps       │   │
+│                     └──────────────┘    └────────┬─────────┘   │
+│                            ▲                     │              │
+│                            │    ┌────────────────┘              │
+│                            │    │                               │
+│                     ┌──────┴────▼──────┐                       │
+│                     │   SELECT TOOL    │                        │
+│                     │                  │                        │
+│                     │ LLM dynamically  │                        │
+│                     │ chooses next     │                        │
+│                     │ database based   │                        │
+│                     │ on current state │                        │
+│                     └──────────────────┘                        │
+│                            │                                    │
+│                            ▼                                    │
+│                     ┌──────────────────┐                       │
+│                     │   SYNTHESIZE     │                        │
+│                     │                  │                        │
+│                     │ LLM creates      │                        │
+│                     │ evidence summary │                        │
+│                     │ for each target  │                        │
+│                     └──────────────────┘                        │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Key Components
+
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| **AgenticTargetDiscovery** | `src/agents/target_agent.py` | Main agentic workflow with LLM reasoning |
+| **ResearchPlan** | `src/models.py` | LLM-generated research strategy |
+| **ToolDecision** | `src/models.py` | Dynamic tool selection decisions |
+| **IntermediateAnalysis** | `src/models.py` | LLM analysis of search results |
+| **EvidenceSynthesis** | `src/models.py` | Per-target evidence synthesis |
+| **TOOL_REGISTRY** | `src/tools/__init__.py` | Tool metadata for agentic selection |
+
+## 🔧 Configuration
+
+### Environment Variables
+
+```bash
+# Required: One LLM API key
+OPENAI_API_KEY=sk-...
+# or
+ANTHROPIC_API_KEY=sk-ant-...
+
+# Recommended: For better PubMed rate limits
+NCBI_API_KEY=...
+NCBI_EMAIL=your@email.com
+
+# Optional: For full DisGeNET access
+DISGENET_API_KEY=...
+
+# Agentic settings
+MAX_ITERATIONS=5          # Maximum reasoning iterations
+VERBOSE_REASONING=false   # Show LLM reasoning by default
+```
+
+### Config File Settings
+
+```python
+# src/config.py
+llm_model: str = "gpt-4o"       # LLM model to use
+llm_temperature: float = 0.1    # Lower = more focused
+max_iterations: int = 5         # Reasoning iterations
+max_pubmed_results: int = 50
+max_gwas_results: int = 100
+```
+
+## 📊 Evidence Scoring
+
+Targets are ranked using weighted evidence from multiple sources:
+
+| Evidence Type | Weight | Source |
+|---------------|--------|--------|
+| DisGeNET score | 20% | Gene-disease association database |
+| Genetic evidence | 20% | GWAS Catalog |
+| Literature | 18% | PubMed publications |
+| UniProt annotations | 12% | Disease annotations |
+| GO relevance | 10% | Functional validation |
+| Pathway context | 8% | Reactome pathways |
+| Structural | 7% | PDB availability |
+| Druggability | 5% | PubChem compounds |
+
+## 🧪 Testing
+
+```bash
+pytest tests/                    # All tests
+pytest tests/test_ranker.py -v  # Specific test
+pytest -k "gwas" -v             # Pattern matching
+```
+
+## 📁 Project Structure
 
 ```
 agentic/
 ├── src/
-│   ├── agents/          # LangGraph agent definitions
-│   ├── tools/           # Database API integrations
-│   ├── rankers/         # Target scoring and ranking logic
-│   └── utils/           # Helper functions
-├── tests/               # Unit and integration tests
-├── examples/            # Example queries and outputs
-├── main.py             # CLI entry point
-└── requirements.txt    # Python dependencies
+│   ├── agents/
+│   │   └── target_agent.py    # 🧠 Agentic workflow with LLM reasoning
+│   ├── tools/
+│   │   ├── pubmed_tool.py     # Core: Literature search
+│   │   ├── uniprot_tool.py    # Core: Protein information
+│   │   ├── disgenet_tool.py   # Core: Gene-disease associations
+│   │   ├── go_tool.py         # Core: Gene Ontology
+│   │   ├── gwas_tool.py       # Recommended: Genetic associations
+│   │   ├── reactome_tool.py   # Recommended: Pathways
+│   │   ├── pdb_tool.py        # Supplementary: Structures
+│   │   └── pubchem_tool.py    # Supplementary: Compounds
+│   ├── rankers/
+│   │   └── target_ranker.py   # Multi-source evidence ranking
+│   ├── models.py              # Pydantic models including agentic types
+│   └── config.py              # Configuration management
+├── tests/
+├── examples/
+├── main.py                    # CLI with reasoning visualization
+└── requirements.txt
 ```
 
-## Architecture
+## 🆚 Automation vs Agentic
 
-The system uses LangGraph to create a stateful agent that:
-1. **Planning**: Breaks down the disease query into searchable components
-2. **Search**: Queries multiple databases in parallel
-3. **Integration**: Combines and deduplicates results
-4. **Analysis**: Scores targets based on evidence quality and relevance
-5. **Ranking**: Orders targets by potential therapeutic value
+| Aspect | Previous (Automation) | Now (Agentic) |
+|--------|----------------------|---------------|
+| Strategy | Fixed sequence | LLM-planned per disease |
+| Tool Selection | All tools, always | Dynamic based on findings |
+| Intermediate Results | Stored, not analyzed | LLM evaluates each step |
+| Error Handling | Skip and continue | Reason about gaps |
+| Output | Scores only | Scores + reasoning + synthesis |
 
-## Development
-
-
-## License
+## 📄 License
 
 MIT
