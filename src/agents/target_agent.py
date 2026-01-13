@@ -181,7 +181,8 @@ class AgenticTargetDiscovery:
         if settings.get_llm_provider() == "openai":
             return ChatOpenAI(
                 model=settings.llm_model,
-                temperature=settings.llm_temperature
+                temperature=settings.llm_temperature,
+                api_key=settings.openai_api_key
             )
         else:
             return ChatAnthropic(

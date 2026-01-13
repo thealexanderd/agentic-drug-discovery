@@ -47,6 +47,31 @@ cp .env.example .env  # Add your API keys
 
 # Run agentic discovery
 python main.py discover "Alzheimer's disease" --verbose --show-plan
+```
+
+## 🎨 LangGraph Studio Integration
+
+This project is fully integrated with **LangGraph Studio** for visual debugging and development:
+
+```bash
+# Option 1: Open in LangGraph Studio Desktop
+# Just open this directory in LangGraph Studio
+
+# Option 2: Run with LangGraph CLI
+langgraph dev
+
+# Option 3: Deploy to LangGraph Cloud
+langgraph deploy
+```
+
+**Features in Studio:**
+- 📊 Visual graph execution flow
+- 🔍 Inspect state at each step
+- 💭 View LLM reasoning and prompts
+- 🔄 Debug tool selection decisions
+- 📈 Performance metrics and tracing
+
+See [LANGRAPH_STUDIO.md](LANGRAPH_STUDIO.md) for complete setup instructions.
 
 # See available tools
 python main.py tools
