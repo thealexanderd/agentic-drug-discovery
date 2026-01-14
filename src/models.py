@@ -92,6 +92,7 @@ class ProteinTarget(BaseModel):
     disgenet_score: float = Field(default=0.0, ge=0.0, le=1.0, description="DisGeNET gene-disease association")
     go_score: float = Field(default=0.0, ge=0.0, le=1.0, description="Gene Ontology functional relevance")
     pathway_score: float = Field(default=0.0, ge=0.0, le=1.0, description="Reactome pathway relevance")
+    opentargets_score: float = Field(default=0.0, ge=0.0, le=1.0, description="OpenTargets overall association score")
     
     # Metadata
     evidence_sources: list[str] = Field(default_factory=list, description="Database sources providing evidence")
@@ -106,13 +107,14 @@ class ProteinTarget(BaseModel):
     def overall_score(self) -> float:
         """Weighted overall score combining all evidence types."""
         weights = {
-            "genetic": 0.25,
-            "literature": 0.20,
-            "structural": 0.10,
-            "druggability": 0.10,
-            "disgenet": 0.20,
-            "go": 0.08,
+            "genetic": 0.20,
+            "literature": 0.15,
+            "structural": 0.08,
+            "druggability": 0.08,
+            "disgenet": 0.15,
+            "go": 0.07,
             "pathway": 0.07,
+            "opentargets": 0.20,  # High weight for comprehensive OpenTargets data
         }
         return (
             self.genetic_score * weights["genetic"] +
@@ -121,7 +123,8 @@ class ProteinTarget(BaseModel):
             self.druggability_score * weights["druggability"] +
             self.disgenet_score * weights["disgenet"] +
             self.go_score * weights["go"] +
-            self.pathway_score * weights["pathway"]
+            self.pathway_score * weights["pathway"] +
+            self.opentargets_score * weights["opentargets"]
         )
 
 
@@ -132,7 +135,7 @@ class ProteinTarget(BaseModel):
 class SearchResult(BaseModel):
     """Generic search result from a database."""
     
-    source: Literal["pubmed", "pubchem", "gwas", "pdb", "uniprot", "disgenet", "go", "reactome"]
+    source: Literal["pubmed", "pubchem", "gwas", "pdb", "uniprot", "disgenet", "go", "reactome", "opentargets"]
     result_id: str
     title: str
     relevance_score: float = Field(ge=0.0, le=1.0)
@@ -179,6 +182,7 @@ class AgentState(BaseModel):
     disgenet_results: list[SearchResult] = Field(default_factory=list)
     go_results: list[SearchResult] = Field(default_factory=list)
     reactome_results: list[SearchResult] = Field(default_factory=list)
+    opentargets_results: list[SearchResult] = Field(default_factory=list)
     
     # =========================================================================
     # EXTRACTED PROTEINS AND TARGETS

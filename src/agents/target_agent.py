@@ -493,6 +493,13 @@ class AgenticTargetDiscovery:
                     return tool.search(candidates)
                 return []
             
+            elif tool_name == "opentargets":
+                # OpenTargets can work with or without candidates
+                if candidates:
+                    return tool.search(disease, candidates[:20])
+                else:
+                    return tool.search(disease)
+            
             else:
                 return []
                 
@@ -512,7 +519,8 @@ class AgenticTargetDiscovery:
             "pubchem": "pubchem_results",
             "disgenet": "disgenet_results",
             "go": "go_results",
-            "reactome": "reactome_results"
+            "reactome": "reactome_results",
+            "opentargets": "opentargets_results"
         }
         
         field = result_map.get(tool_name)
@@ -544,7 +552,8 @@ class AgenticTargetDiscovery:
                 "score": r.relevance_score,
                 "key_info": {k: v for k, v in r.metadata.items() if k in [
                     "gene", "gene_symbol", "pvalue", "disgenet_score", 
-                    "biological_processes", "pathway_name"
+                    "biological_processes", "pathway_name", "overall_score",
+                    "genetic_score", "literature_score", "ensembl_id"
                 ]}
             })
             
@@ -785,6 +794,7 @@ def run_target_discovery(disease: str, verbose: bool = False) -> AgentState:
     
     initial_state = AgentState(
         disease_query=disease,
+
         max_iterations=settings.max_iterations
     )
     

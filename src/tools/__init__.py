@@ -8,6 +8,7 @@ from src.tools.pubchem_tool import create_pubchem_tool, PubChemTool
 from src.tools.disgenet_tool import create_disgenet_tool, DisGeNETTool
 from src.tools.go_tool import create_go_tool, GOTool
 from src.tools.reactome_tool import create_reactome_tool, ReactomeTool
+from src.tools.opentargets_mcp_tool import create_opentargets_mcp_tool, OpenTargetsMCPTool
 
 __all__ = [
     # Core mandatory tools
@@ -18,6 +19,7 @@ __all__ = [
     # Strongly recommended tools
     "create_gwas_tool",
     "create_reactome_tool",
+    "create_opentargets_mcp_tool",
     # Supplementary tools
     "create_pdb_tool",
     "create_pubchem_tool",
@@ -30,6 +32,7 @@ __all__ = [
     "DisGeNETTool",
     "GOTool",
     "ReactomeTool",
+    "OpenTargetsMCPTool",
 ]
 
 # Tool registry with metadata for agentic selection
@@ -87,6 +90,15 @@ TOOL_REGISTRY = {
         "best_for": ["pathway analysis", "target clustering", "mechanistic explanation"],
         "limitations": ["pathway coverage varies"],
         "factory": create_reactome_tool
+    },
+    "opentargets": {
+        "name": "OpenTargets (MCP)",
+        "purpose": "Comprehensive multi-source target-disease evidence",
+        "priority": 2,  # Strongly recommended
+        "provides": ["target_disease_scores", "evidence_by_datatype", "drug_info", "genetics", "pathways"],
+        "best_for": ["comprehensive evidence", "target prioritization", "multi-source integration", "known drugs"],
+        "limitations": ["may be slower", "requires disease ID mapping"],
+        "factory": create_opentargets_mcp_tool
     },
     "pdb": {
         "name": "PDB",

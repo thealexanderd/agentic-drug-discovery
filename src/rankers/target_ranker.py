@@ -61,6 +61,7 @@ class TargetRanker:
             "pathway": [],
             "structural": [],
             "druggability": [],
+            "opentargets": [],
             "sources": set(),
             "findings": [],
             "names": set(),
@@ -192,6 +193,48 @@ class TargetRanker:
                 evidence[protein]["druggability"].append(result.relevance_score)
                 evidence[protein]["sources"].add("PubChem")
         
+        # =====================================================================
+        # OPENTARGETS MCP - COMPREHENSIVE MULTI-SOURCE EVIDENCE
+        # =====================================================================
+        
+        # Process OpenTargets results (comprehensive evidence)
+        for result in state.opentargets_results:
+            gene = result.metadata.get("gene_symbol", "").upper()
+            if gene:
+                # OpenTargets provides a comprehensive overall score
+                overall = result.metadata.get("overall_score", result.relevance_score)
+                evidence[gene]["opentargets"].append(overall)
+                evidence[gene]["sources"].add("OpenTargets")
+                
+                # Also incorporate specific datatype scores
+                genetic_ot = result.metadata.get("genetic_score", 0)
+                literature_ot = result.metadata.get("literature_score", 0)
+                pathways_ot = result.metadata.get("pathways_score", 0)
+                animal_models = result.metadata.get("animal_models_score", 0)
+                known_drugs = result.metadata.get("known_drugs_score", 0)
+                
+                # Boost other evidence categories with OpenTargets data
+                if genetic_ot > 0:
+                    evidence[gene]["genetic"].append(genetic_ot)
+                if literature_ot > 0:
+                    evidence[gene]["literature"].append(literature_ot)
+                if pathways_ot > 0:
+                    evidence[gene]["pathway"].append(pathways_ot)
+                
+                # Add comprehensive finding
+                datatype_scores = result.metadata.get("datatype_scores", {})
+                if datatype_scores:
+                    top_datatypes = sorted(datatype_scores.items(), key=lambda x: x[1], reverse=True)[:3]
+                    finding_text = f"OpenTargets: overall={overall:.2f}, top evidence: " + \
+                                   ", ".join([f"{dt}={sc:.2f}" for dt, sc in top_datatypes])
+                    evidence[gene]["findings"].append(finding_text)
+                
+                # Add known drugs info if available
+                if known_drugs > 0.5:
+                    evidence[gene]["findings"].append(
+                        f"Known drug target (OpenTargets known_drug score={known_drugs:.2f})"
+                    )
+        
         return evidence
     
     def _create_target(self, protein_id: str, evidence: dict) -> ProteinTarget:
@@ -205,6 +248,7 @@ class TargetRanker:
         pathway_score = self._calculate_score(evidence["pathway"])
         structural_score = self._calculate_score(evidence["structural"])
         druggability_score = self._calculate_score(evidence["druggability"])
+        opentargets_score = self._calculate_score(evidence["opentargets"])
         
         # Get protein name (use first name found or the ID)
         protein_name = list(evidence["names"])[0] if evidence["names"] else protein_id
@@ -222,6 +266,7 @@ class TargetRanker:
             disgenet_score=disgenet_score,
             go_score=go_score,
             pathway_score=pathway_score,
+            opentargets_score=opentargets_score,
             # Metadata
             evidence_sources=list(evidence["sources"]),
             key_findings=list(evidence["findings"])[:8],  # Top 8 findings

@@ -27,14 +27,16 @@ class UniProtTool:
             List of SearchResult objects with UniProt entries
         """
         try:
-            # Build query
+            # Build query using proper UniProt syntax
             if proteins:
-                # Search for specific proteins
-                gene_query = " OR ".join([f"gene:{p}" for p in proteins[:10]])
-                query = f"({gene_query}) AND (disease:{disease}) AND (reviewed:true)"
+                # Search for specific proteins using gene_exact field
+                # Format: (gene_exact:GENE1 OR gene_exact:GENE2) AND disease AND reviewed
+                gene_queries = [f"(gene_exact:{p.upper()})" for p in proteins[:10]]
+                gene_query = " OR ".join(gene_queries)
+                query = f"({gene_query}) AND (cc_disease:{disease}) AND (reviewed:true)"
             else:
-                # General disease search
-                query = f"(disease:{disease}) AND (reviewed:true)"
+                # General disease search using cc_disease field for disease comments
+                query = f"(cc_disease:{disease}) AND (reviewed:true)"
             
             response = self.session.get(
                 f"{self.BASE_URL}/search",
@@ -45,6 +47,27 @@ class UniProtTool:
                 },
                 timeout=30
             )
+            
+            # If that fails, try simpler query
+            if response.status_code == 400:
+                if proteins:
+                    # Fallback: search by gene name in any field
+                    gene_list = " OR ".join(proteins[:10])
+                    query = f"(gene:{gene_list}) AND (reviewed:true)"
+                else:
+                    # Fallback: search disease in any field
+                    query = f"({disease}) AND (reviewed:true)"
+                
+                response = self.session.get(
+                    f"{self.BASE_URL}/search",
+                    params={
+                        "query": query,
+                        "format": "json",
+                        "size": 50
+                    },
+                    timeout=30
+                )
+            
             response.raise_for_status()
             
             data = response.json()
@@ -84,6 +107,8 @@ class UniProtTool:
             
         except Exception as e:
             print(f"UniProt search error: {e}")
+            import traceback
+            traceback.print_exc()
             return []
     
     def _calculate_relevance(self, entry: dict, disease: str) -> float:

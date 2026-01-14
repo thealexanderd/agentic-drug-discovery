@@ -29,6 +29,9 @@ This isn't just a pipeline—it's an AI researcher that:
 |----------|---------|------------------|
 | **GWAS Catalog** | Genetic associations | Causal evidence, avoids literature bias |
 | **Reactome** | Pathway context | Mechanistic explanations, target clustering |
+| **OpenTargets (MCP)** | Comprehensive multi-source evidence | Aggregates genetics, literature, pathways, drugs, and more |
+
+> 🎯 **New**: OpenTargets integration via [Model Context Protocol (MCP)](https://mcp.platform.opentargets.org/mcp) provides comprehensive target-disease evidence scores. See [OPENTARGETS_MCP.md](OPENTARGETS_MCP.md) for details.
 
 ### Supplementary
 
